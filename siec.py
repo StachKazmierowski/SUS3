@@ -19,17 +19,6 @@ else:
     device = "cpu"
     torch.set_default_tensor_type(torch.FloatTensor)
 
-BATCH_SIZE = 32
-
-transform = transforms.Compose([transforms.ToTensor(),
-                                transforms.Normalize((0.5,), (0.5,)),
-                                ])
-
-trainset = datasets.MNIST('./data/train', download=True, train=True, transform=transform)
-valset = datasets.MNIST('./data/test', download=True, train=False, transform=transform)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True)
-valloader = torch.utils.data.DataLoader(valset, batch_size=BATCH_SIZE, shuffle=True)
-
 
 # %%
 
@@ -55,5 +44,29 @@ class Net(nn.Module):
         return X
 
 
-model = Net(device=device)
+def accuracy(model, testloader, epoch):
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            images, labels = data[0].to(device), data[1].to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+        print("Accuracy", 100 * correct / total)
+        return 100 * correct / total
+
+def get_model(trained=False):
+    model = Net(device=device)
+    if trained :
+        model.load_state_dict(torch.load('./mnist_net'))
+        model.to(device)
+        print("loaded")
+        return model
+    else :
+        return model
+
+
+
 
