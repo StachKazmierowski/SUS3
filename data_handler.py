@@ -10,6 +10,7 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 from matplotlib import pyplot as plt
 import siec
+from siec import device
 
 train_set = datasets.ImageFolder(root='./data/zajads_sample',
                                  transform=transforms.Compose([
@@ -56,7 +57,8 @@ def extractFeatures(dataset, model, num_features=18):
                 padded = torch.zeros(1,1,width,height)
                 padded[0,0,:x.shape[-2], :x.shape[-1]] = x
                 x = padded
-            out[i][:num_features-2] = model.forward_features(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).mean(dim=3).mean(dim=2)[0].numpy()
+                x.to(device)
+            out[i][:num_features-2] = model.forward_features(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).mean(dim=3).mean(dim=2)[0].cpu().numpy()
             out[i,-2] = x.shape[-2]
             out[i,-1] = x.shape[-1]
     return out,np.arange(n).astype(np.int)
