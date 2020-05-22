@@ -59,6 +59,8 @@ def accuracy(model, testloader, epoch):
 
 def get_model(trained=False):
     model = Net(device=device)
+    if device != "cpu" :
+        model.cuda()
     if trained :
         model.load_state_dict(torch.load('./mnist_net'))
         model.to(device)
