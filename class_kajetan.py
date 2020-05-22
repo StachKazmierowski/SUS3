@@ -11,7 +11,7 @@ from data_handler import train_set
 
 
 # setting distance_threshold=0 ensures we compute the full tree.
-clustering = AgglomerativeClustering().fit(X)
+clustering = AgglomerativeClustering(n_clusters=100).fit(X)
 
 #%%
 def plot_dendrogram(model, **kwargs):
@@ -35,13 +35,66 @@ def plot_dendrogram(model, **kwargs):
     # Plot the corresponding dendrogram
     dendrogram(linkage_matrix, **kwargs)
 
-
+#%%
 # setting distance_threshold=0 ensures we compute the full tree.
-model = AgglomerativeClustering(distance_threshold=0.00001, n_clusters=None)
+model = AgglomerativeClustering(n_clusters=100)
 
 model = model.fit(X)
-plt.title('Hierarchical Clustering Dendrogram')
-# plot the top three levels of the dendrogram
-plot_dendrogram(model, truncate_mode='level', p=3)
-plt.xlabel("Number of points in node (or index of point if no parenthesis).")
-plt.show()
+#%%
+
+labels = model.labels_
+
+#%%
+
+
+import os
+
+def filenames(indices=[], basename=False):
+    if indices:
+        # grab specific indices
+        if basename:
+            return [os.path.basename(train_set.imgs[i][0]) for i in indices]
+        else:
+            return [train_set.imgs[i][0] for i in indices]
+    else:
+        if basename:
+            return [os.path.basename(x[0]) for x in train_set.imgs]
+        else:
+            return [x[0] for x in train_set.imgs]
+
+
+samples = filenames()
+labeled = sorted([x for x in zip(samples, labels)], key=lambda x: x[1])
+labeled[:5]
+
+# %%
+
+HTML_FILE_BEGINING = """
+<!doctype html>
+
+<html lang="en">
+<body>
+"""
+
+HTML_FILE_END = """
+</body>
+</html>
+"""
+
+
+def printToHtml(data, filename='out.html'):
+    with open('out.html', 'w+') as f:
+        f.write(HTML_FILE_BEGINING)
+        _, last_group = data[0]
+        for fname, group in data:
+            if group != last_group:
+                f.write("<HR>")
+                last_group = group
+            f.write("<img src=\"{0}\" alt=\"{1}\">".format(fname, fname))
+
+        f.write(HTML_FILE_END)
+
+
+# %%
+
+printToHtml(labeled)
