@@ -11,13 +11,9 @@ from torch.autograd import Variable
 
 from sklearn.model_selection import train_test_split
 
-if torch.cuda.is_available():
-    device = "cuda:0"
-    print("detected cuda device")
-    torch.set_default_tensor_type(torch.cuda.FloatTensor)
-else:
-    device = "cpu"
-    torch.set_default_tensor_type(torch.FloatTensor)
+
+device = "cpu"
+torch.set_default_tensor_type(torch.FloatTensor)
 
 
 # %%
@@ -59,8 +55,6 @@ def accuracy(model, testloader, epoch):
 
 def get_model(trained=False):
     model = Net(device=device)
-    if device != "cpu" :
-        model.cuda()
     if trained :
         model.load_state_dict(torch.load('./mnist_net'))
         model.to(device)
