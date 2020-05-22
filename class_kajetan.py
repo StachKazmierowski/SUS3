@@ -36,11 +36,8 @@ def plot_dendrogram(model, **kwargs):
     dendrogram(linkage_matrix, **kwargs)
 
 
-iris = load_iris()
-X = iris.data
-
 # setting distance_threshold=0 ensures we compute the full tree.
-model = AgglomerativeClustering(distance_threshold=0, n_clusters=None)
+model = AgglomerativeClustering(distance_threshold=0.00001, n_clusters=None)
 
 model = model.fit(X)
 plt.title('Hierarchical Clustering Dendrogram')
