@@ -81,6 +81,7 @@ HTML_FILE_END = """
 </html>
 """
 
+SEPARATOR = """..."""
 
 def printToHtml(data, filename='out.html'):
     with open('out.html', 'w+') as f:
@@ -90,11 +91,11 @@ def printToHtml(data, filename='out.html'):
             if group != last_group:
                 f.write("<HR>")
                 last_group = group
-            f.write("<img src=\"{0}\" alt=\"{1}\">".format(fname, fname))
+            f.write("<img src=\"{0}\" alt=\"{1}\">{2}".format(fname, fname, SEPARATOR))
 
         f.write(HTML_FILE_END)
 
 
 # %%
 
-printToHtml(labeled)
+printToHtml(labeled[:1000])
