@@ -39,6 +39,10 @@ class Net(nn.Module):
         X = self.pool2(F.relu(self.conv2(X)))
         return X
 
+    def forward_features_first_layer(self, X):
+        X = self.pool1(F.relu(self.conv1(X)))
+        return X
+
 
 def accuracy(model, testloader, epoch):
     correct = 0
