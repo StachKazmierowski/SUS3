@@ -63,6 +63,99 @@ def extractFeatures(dataset, model, num_features=18):
             out[i,-1] = x.shape[-1]
     return out,np.arange(n).astype(np.int)
 
+def extractFeatures2(dataset, model, num_features=18):
+    n = len(dataset)
+    out = np.zeros((n, num_features))
+    with torch.no_grad():
+        for (i,(x,_)) in enumerate(dataset):
+            if x.shape[-2] < 8 or x.shape[-1] < 8 :
+                width = max(8, x.shape[-2])
+                height = max(8, x.shape[-1])
+                padded = torch.zeros(1,1,width,height)
+                padded[0,0,:x.shape[-2], :x.shape[-1]] = x
+                x = padded
+                x.to(device)
+            out[i][:num_features-2] = model.forward_features(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).max(dim=3).values.max(dim=2).values[0].cpu().numpy()
+            out[i,-2] = x.shape[-2]
+            out[i,-1] = x.shape[-1]
+    return out,np.arange(n).astype(np.int)
+
+def extractFeatures3(dataset, model, num_features=26):
+    n = len(dataset)
+    out = np.zeros((n, num_features))
+    with torch.no_grad():
+        for (i,(x,_)) in enumerate(dataset):
+            if x.shape[-2] < 8 or x.shape[-1] < 8 :
+                width = max(8, x.shape[-2])
+                height = max(8, x.shape[-1])
+                padded = torch.zeros(1,1,width,height)
+                padded[0,0,:x.shape[-2], :x.shape[-1]] = x
+                x = padded
+                x.to(device)
+            out[i][:num_features-10] = model.forward_features(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).mean(dim=3).mean(dim=2)[0].cpu().numpy()
+            out[i][num_features - 10:num_features-2] = \
+            model.forward_features_first_layer(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).mean(dim=3).mean(dim=2)[0].cpu().numpy()
+            out[i,-2] = x.shape[-2]
+            out[i,-1] = x.shape[-1]
+    return out,np.arange(n).astype(np.int)
+
+def extractFeatures4(dataset, model, num_features=26):
+    n = len(dataset)
+    out = np.zeros((n, num_features))
+    with torch.no_grad():
+        for (i,(x,_)) in enumerate(dataset):
+            if x.shape[-2] < 8 or x.shape[-1] < 8 :
+                width = max(8, x.shape[-2])
+                height = max(8, x.shape[-1])
+                padded = torch.zeros(1,1,width,height)
+                padded[0,0,:x.shape[-2], :x.shape[-1]] = x
+                x = padded
+                x.to(device)
+            out[i][:num_features-10] = model.forward_features(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).max(dim=3).values.max(dim=2).values[0].cpu().numpy()
+            out[i][num_features - 10:num_features-2] = \
+            model.forward_features_first_layer(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).max(dim=3).values.max(dim=2).values[
+                0].cpu().numpy()
+            out[i,-2] = x.shape[-2]
+            out[i,-1] = x.shape[-1]
+    return out,np.arange(n).astype(np.int)
+
+def extractFeatures5(dataset, model, num_features=10):
+    n = len(dataset)
+    out = np.zeros((n, num_features))
+    with torch.no_grad():
+        for (i,(x,_)) in enumerate(dataset):
+            if x.shape[-2] < 8 or x.shape[-1] < 8 :
+                width = max(8, x.shape[-2])
+                height = max(8, x.shape[-1])
+                padded = torch.zeros(1,1,width,height)
+                padded[0,0,:x.shape[-2], :x.shape[-1]] = x
+                x = padded
+                x.to(device)
+            out[i][:num_features-2] = \
+            model.forward_features_first_layer(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).mean(dim=3).mean(dim=2)[0].cpu().numpy()
+            out[i,-2] = x.shape[-2]
+            out[i,-1] = x.shape[-1]
+    return out,np.arange(n).astype(np.int)
+
+
+def extractFeatures6(dataset, model, num_features=10):
+    n = len(dataset)
+    out = np.zeros((n, num_features))
+    with torch.no_grad():
+        for (i,(x,_)) in enumerate(dataset):
+            if x.shape[-2] < 8 or x.shape[-1] < 8 :
+                width = max(8, x.shape[-2])
+                height = max(8, x.shape[-1])
+                padded = torch.zeros(1,1,width,height)
+                padded[0,0,:x.shape[-2], :x.shape[-1]] = x
+                x = padded
+                x.to(device)
+            out[i][:num_features-2] = model.forward_features_first_layer(x.reshape((1, 1, x.shape[-2], x.shape[-1]))).max(dim=3).values.max(dim=2).values[
+                0].cpu().numpy()
+            out[i,-2] = x.shape[-2]
+            out[i,-1] = x.shape[-1]
+    return out,np.arange(n).astype(np.int)
+
 
 def plotValues(y):
     fig = plt.figure()
@@ -77,7 +170,13 @@ model = siec.get_model()
 
 out,indexes = extractFeatures(train_set, model)
 
+out2, indexes2 = extractFeatures2(train_set, model)
 
+out3, indexes3 = extractFeatures3(train_set, model)
 
+out4,indexes4 = extractFeatures4(train_set, model)
 
+out5, indexes5 = extractFeatures5(train_set, model)
 
+out6, indexes6 = extractFeatures6(train_set, model)
+#%%
