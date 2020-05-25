@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 import siec
 from PIL import Image
 from siec import device
+from torchvision.transforms.functional import adjust_contrast, adjust_brightness
 
 
 IMG_SIZE = 50
@@ -20,7 +21,7 @@ def pad(img):
     img = np.array(img)
     x, y= img.shape
     size = max(x, y)
-    out = np.zeros((size, size))
+    out = np.ones((size, size))*255
     if x > y :
         dif = x - y
         left = int(dif / 2)
@@ -46,9 +47,14 @@ def resize(img):
     return img.resize((int(x*rate), int(y*rate)))
 
 
+def contrast(img):
+    cont = adjust_contrast(img, 1.2)
+    return adjust_brightness(cont, 1.2)
+
 train_set = datasets.ImageFolder(root='./data/zajads_sample',
                                  transform=transforms.Compose([
                                      transforms.Grayscale(),
+                                     contrast,
                                      resize,
                                      pad,
                                      transforms.ToTensor()
