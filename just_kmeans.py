@@ -131,6 +131,9 @@ def printToHtml(data, filename='out.html'):
 
 printToHtml(labeled[-2000:])
 
+#%%
 
-
+# emnist
+from emnist import extract_training_samples
+images, labels = extract_training_samples('balanced')
 
