@@ -20,7 +20,7 @@ IMG_SIZE = 50
 def pad(img):
     img = np.array(img)
     x, y= img.shape
-    size = max(x, y)
+    size = IMG_SIZE
     out = np.ones((size, size))*255
     if x > y :
         dif = x - y

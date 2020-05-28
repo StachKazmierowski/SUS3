@@ -13,6 +13,7 @@ for i in range(len(train_set)):
     x = train_set[i][0]
     X[i] = x.reshape(-1).numpy()
 
+
 #%%
 
 

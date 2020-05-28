@@ -1,0 +1,3 @@
+./data/zajads_sample/1/1_18_41.png
+./data/zajads_sample/1/1_18_96.png
+./data/zajads_sample/1/1_18_174.png
