@@ -1,13 +1,15 @@
-import os
 import sys
 
 import numpy as np
-from matplotlib import pyplot as plt
+from PIL import Image
+from scipy.optimize import curve_fit
 from sklearn import metrics
 from sklearn.cluster import MiniBatchKMeans
-from torchvision import datasets, transforms
+import ntpath
+from torchvision import transforms
 from torchvision.transforms.functional import adjust_contrast, adjust_brightness
-from scipy.optimize import curve_fit
+
+
 
 if (len(sys.argv) != 2) :
     print("Error, wrong arguments")
@@ -20,9 +22,7 @@ lines = []
 with open(filename) as f:
     lines = f.readlines()
 
-
-#prepare data somehow TODO
-
+lines = [x[:-1] for x in lines]
 
 
 
@@ -62,37 +62,21 @@ def contrast(img):
     cont = adjust_contrast(img, 1.2)
     return adjust_brightness(cont, 1.2)
 
-train_set = datasets.ImageFolder(root='./data/zajads_sample',
-                                 transform=transforms.Compose([
-                                     transforms.Grayscale(),
+
+X = np.zeros((len(lines), IMG_SIZE**2))
+
+
+transform= transforms.Compose([transforms.Grayscale(),
                                      contrast,
                                      resize,
                                      pad,
                                      transforms.ToTensor()
-                                 ]))
+                                 ])
 
 
-
-X = np.zeros((len(train_set), IMG_SIZE**2))
-
-for i in range(len(train_set)):
-    x = train_set[i][0]
-    X[i] = x.reshape(-1).numpy()
-
-
-
-def filenames(indices=[], basename=False):
-    if indices:
-        # grab specific indices
-        if basename:
-            return [os.path.basename(train_set.imgs[i][0]) for i in indices]
-        else:
-            return [train_set.imgs[i][0] for i in indices]
-    else:
-        if basename:
-            return [os.path.basename(x[0]) for x in train_set.imgs]
-        else:
-            return [x[0] for x in train_set.imgs]
+for i,image_path in enumerate(lines) :
+    img = Image.open(image_path)
+    X[i] = transform(img).reshape(-1).numpy()
 
 def train_model(n=100):
     # setting distance_threshold=0 ensures we compute the full tree.
@@ -140,7 +124,7 @@ HTML_FILE_END = """
 </html>
 """
 
-SEPARATOR = """..."""
+SEPARATOR = """"""
 
 def printToHtml(data, filename='out.html'):
     with open(filename, 'w+') as f:
@@ -153,6 +137,21 @@ def printToHtml(data, filename='out.html'):
             f.write("<img src=\"{0}\" alt=\"{1}\">{2}".format(fname, fname, SEPARATOR))
 
         f.write(HTML_FILE_END)
+
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+def printToFile(data, filename='out.txt'):
+    with open(filename, 'w+') as f:
+        _, last_group = data[0]
+        for fname, group in data:
+            if group != last_group:
+                f.write("\n")
+                last_group = group
+            f.write("{0} ".format(path_leaf(fname)))
+
+
 
 
 def get_data(n):
@@ -171,7 +170,7 @@ inertias = []
 sils = []
 scs = []
 
-eny =  np.arange(20,110,10)
+eny =  np.arange(30,130,5)
 
 for n in eny:
     ine, sil, sc = get_data(n)
@@ -180,20 +179,22 @@ for n in eny:
     scs.append(sc)
 
 
+inertias = np.array(inertias)
+sils = np.array(sils)
 
-plt.figure()
-plt.plot(eny, sils)
-plt.title("siluet")
-plt.figure()
-plt.plot(eny, scs)
-plt.title("metrics.score")
-plt.figure()
+# plt.figure()
+# plt.plot(eny, sils)
+# plt.title("siluet")
+# plt.figure()
+# plt.plot(eny, scs)
+# plt.title("metrics.score")
+# plt.figure()
 #%%
 
-inertias = np.array(inertias)
 
-plt.plot(eny, inertias)
-plt.title("inertia")
+
+# plt.plot(eny, inertias)
+# plt.title("inertia")
 
 def func(x, a, b, c):
     return a * np.exp(-b * x) + c
@@ -202,47 +203,38 @@ def func(x, a, b, c):
 guess = np.polyfit(eny, np.log(inertias), 1)
 guess_lin = np.array([ np.exp(guess[1]),  np.abs(guess[0]),  np.min(inertias)])
 popt, pcov = curve_fit(func, eny, inertias, p0=guess_lin)
-print(popt)
+# print(popt)
 
 
-plt.plot(eny, func(eny, guess_lin[0], guess_lin[1], 0), 'g--',
-         label='lin_fit: a=%5.3f, b=%5.3f, c=%5.3f' % (guess_lin[0], guess_lin[1], 0))
+# plt.plot(eny, func(eny, guess_lin[0], guess_lin[1], 0), 'g--',
+#          label='lin_fit: a=%5.3f, b=%5.3f, c=%5.3f' % (guess_lin[0], guess_lin[1], 0))
+#
+# plt.plot(eny, func(eny, *popt), 'r--',
+#          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
+# plt.legend()
+# plt.show()
 
-plt.plot(eny, func(eny, *popt), 'r--',
-         label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
-plt.legend()
 
 #%%
 from kneed import KneeLocator
-kn = KneeLocator(np.arange(10,150,1), func(np.arange(10,150,1), *popt), curve='convex', direction='decreasing')
+x = np.arange(1,120,1)
+kn = KneeLocator(x, func(x, *popt), curve='convex', direction='decreasing')
 knee = kn.knee
-print("knee found at", knee)
-
-#%%
-eny2 =  np.arange(knee-15,knee+15,3)
+# print("knee found ", knee)
 
 
-inertias2 = []
-sils2 = []
-scs2 = []
+model = train_model(knee)
+samples = lines
+labels = model.labels_
+scores = grade_clusters(X, labels, model)
+labeled = sorted([x for x in zip(samples, labels)], key=lambda x: scores[x[1]])
 
-for n in eny2:
-    ine, sil, sc = get_data(n)
-    inertias2.append(ine)
-    sils2.append(sil)
-    scs2.append(sc)
+printToHtml(labeled[:2000])
+printToFile(labeled[:2000])
 
 
 
-plt.figure()
-plt.plot(eny2, sils2)
-plt.title("siluet2")
-plt.figure()
-plt.plot(eny2, scs2)
-plt.title("metrics.score2")
-plt.figure()
-inertias2 = np.array(inertias2)
-plt.plot(eny2, inertias2)
-plt.title("inertia2")
-#%%
-print("best K:", eny2[np.argmax(sils2)])
+
+
+
+
